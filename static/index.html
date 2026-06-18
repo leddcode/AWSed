@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Permission Assessor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" aria-label="Assessment setup">
+            <div class="brand-block">
+                <div class="brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3 4.8 6.2v5.4c0 4.5 3 7.8 7.2 9.4 4.2-1.6 7.2-4.9 7.2-9.4V6.2L12 3Z"/>
+                        <path d="m9 12 2 2 4-5"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="eyebrow">AWS Permission Assessor</p>
+                    <h1>Assessment Console</h1>
+                </div>
+            </div>
+
+            <form id="creds-form" class="creds-form" autocomplete="off">
+                <div class="field-group">
+                    <label for="access-key">Access Key ID</label>
+                    <input type="text" id="access-key" name="access_key" placeholder="AKIA..." spellcheck="false" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="secret-key">Secret Access Key</label>
+                    <input type="password" id="secret-key" name="secret_key" placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" spellcheck="false" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="session-token">Session Token</label>
+                    <textarea id="session-token" name="session_token" rows="4" placeholder="Optional temporary credential token" spellcheck="false"></textarea>
+                </div>
+
+                <div class="field-group">
+                    <label for="region">Region</label>
+                    <select id="region" name="region">
+                        <option value="us-east-1">us-east-1</option>
+                        <option value="us-east-2">us-east-2</option>
+                        <option value="us-west-1">us-west-1</option>
+                        <option value="us-west-2">us-west-2</option>
+                        <option value="eu-west-1">eu-west-1</option>
+                        <option value="eu-west-2">eu-west-2</option>
+                        <option value="eu-central-1">eu-central-1</option>
+                        <option value="ap-southeast-1">ap-southeast-1</option>
+                        <option value="ap-southeast-2">ap-southeast-2</option>
+                        <option value="ap-northeast-1">ap-northeast-1</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" id="run-btn" class="primary-action">
+                        <span class="btn-label">Start checks</span>
+                        <span class="spinner hidden" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" id="clear-btn" class="ghost-action">Clear</button>
+                </div>
+            </form>
+
+            <div class="sidebar-footer">
+                <div class="connection-status" aria-live="polite">
+                    <span class="dot pending" id="server-status-dot"></span>
+                    <span id="server-status-text">Checking backend</span>
+                </div>
+                <p class="privacy-note">Credentials are sent only to this local backend for the current run.</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">Security permission profile</p>
+                    <h2>Permission Checks</h2>
+                    <p id="run-meta" class="run-meta">No assessment has been run.</p>
+                </div>
+                <div class="summary-grid" aria-label="Assessment summary">
+                    <div class="stat-card total">
+                        <span class="stat-value" id="stat-total">0</span>
+                        <span class="stat-label">Checks</span>
+                    </div>
+                    <div class="stat-card allowed">
+                        <span class="stat-value" id="stat-allowed">0</span>
+                        <span class="stat-label">Allowed</span>
+                    </div>
+                    <div class="stat-card denied">
+                        <span class="stat-value" id="stat-denied">0</span>
+                        <span class="stat-label">Denied</span>
+                    </div>
+                    <div class="stat-card error">
+                        <span class="stat-value" id="stat-error">0</span>
+                        <span class="stat-label">Errors</span>
+                    </div>
+                </div>
+            </header>
+
+            <section class="notice hidden" id="global-notice" aria-live="assertive"></section>
+
+            <section class="progress-panel hidden" id="progress-panel" aria-live="polite">
+                <div class="progress-row">
+                    <span id="progress-title">Running assessment</span>
+                    <span id="progress-label">Waiting for AWS responses...</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-bar"></div>
+                </div>
+            </section>
+
+            <section class="results-workbench">
+                <div class="toolbar" id="results-toolbar">
+                    <div class="search-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path d="m20 20-3.5-3.5"></path>
+                        </svg>
+                        <input type="search" id="result-search" placeholder="Search service, action, or message">
+                    </div>
+
+                    <div class="filter-group" aria-label="Status filter">
+                        <button type="button" class="filter-chip active" data-filter="all">All</button>
+                        <button type="button" class="filter-chip" data-filter="allowed">Allowed</button>
+                        <button type="button" class="filter-chip" data-filter="denied">Denied</button>
+                        <button type="button" class="filter-chip" data-filter="error">Errors</button>
+                    </div>
+
+                    <select id="sort-select" class="sort-select" aria-label="Sort results">
+                        <option value="original">Run order</option>
+                        <option value="status">Status</option>
+                        <option value="service">Service</option>
+                    </select>
+
+                    <button type="button" id="export-btn" class="ghost-action toolbar-action" disabled>Export JSON</button>
+                </div>
+
+                <div class="empty-state" id="empty-state">
+                    <div class="empty-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14"/>
+                            <path d="M8 8h8"/>
+                            <path d="M8 12h5"/>
+                            <path d="M5 21h14"/>
+                        </svg>
+                    </div>
+                    <h3>Ready for a permission profile</h3>
+                    <p>Results, AWS responses, follow-up actions, and errors will appear here.</p>
+                </div>
+
+                <div class="results-list hidden" id="results-list" aria-live="polite"></div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-overlay hidden" id="quick-run-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <p class="eyebrow" id="modal-service">Follow-up action</p>
+                    <h3 id="modal-title">Execute Action</h3>
+                </div>
+                <button class="icon-action" id="modal-close" type="button" aria-label="Close dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M18 6 6 18"/>
+                        <path d="m6 6 12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="execute-form" class="modal-body">
+                <input type="hidden" id="execute-action" name="action">
+                <div class="field-group">
+                    <label for="execute-params">Parameters JSON</label>
+                    <textarea id="execute-params" name="params_json" rows="7" spellcheck="false" placeholder="{&quot;MaxItems&quot;: 5}">{}</textarea>
+                </div>
+                <p class="inline-error hidden" id="execute-json-error"></p>
+                <div class="modal-actions">
+                    <button type="button" class="ghost-action" id="modal-cancel">Cancel</button>
+                    <button type="submit" class="primary-action" id="execute-submit">
+                        <span class="btn-label">Execute</span>
+                        <span class="spinner hidden" aria-hidden="true"></span>
+                    </button>
+                </div>
+                <div class="execute-result hidden" id="execute-result">
+                    <div class="result-heading">
+                        <span>Response</span>
+                        <span id="execute-status-badge" class="badge"></span>
+                    </div>
+                    <pre id="execute-result-data"></pre>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
